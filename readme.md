@@ -1,0 +1,1 @@
+A guide for large language models to write good functional TypeScript.
