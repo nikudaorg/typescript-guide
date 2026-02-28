@@ -25,22 +25,30 @@
 11. Prefer **more precise types** that make invalid states unrepresentable:
 
 - Avoid optional fields unless they are truly independent.
+
 - If exactly one of several fields must be defined, use a discriminated union or an `ExactlyOneField` utility, e.g.:
 
-  ```ts
-  export type ExactlyOneField<T extends Record<PropertyKey, unknown>> = {
-    [K in keyof T]: { [P in K]: T[P] } & {
-      [P in Exclude<keyof T, K>]: undefined;
-    };
-  }[keyof T];
-  ```
+```ts
+export type ExactlyOneField<T extends Record<PropertyKey, unknown>> = {
+  [K in keyof T]: { [P in K]: T[P] } & {
+    [P in Exclude<keyof T, K>]: undefined;
+  };
+}[keyof T];
+
+```
 
 12. Prefer **literal types** over broad types when applicable (`"get"` instead of `string`).
 13. Use **branded types** for identifiers and units to avoid mixing incompatible values, e.g.
 
 ```ts
-type UserId = Brand<string, 'UserId'>;
-type Cents = Brand<number, 'Cents'>;
+declare const UserIdSymbol: unique symbol;
+type UserIdSymbol = typeof UserIdSymbol;
+type UserId = Brand<number, UserIdSymbol>;
+
+declare const CentsSymbol: unique symbol;
+type CentsSymbol = typeof CentsSymbol;
+type Cents = Brand<number, CentsSymbol>;
+
 ```
 
 14. Always **share relevant types between frontend and backend** (even without a special library).
@@ -67,9 +75,10 @@ type Cents = Brand<number, 'Cents'>;
 
 - Bad shape:
 
-  ```ts
-  function request(method: "get" | "post"): { response: { method: "get" | "post"; ... } }
-  ```
+```ts
+function request(method: "get" | "post"): { response: { method: "get" | "post"; ... } }
+
+```
 
 - Prefer returning **only new information**, and compose it with the input outside the function if necessary.
 
