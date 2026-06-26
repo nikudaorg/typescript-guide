@@ -1,137 +1,50 @@
-## Repository & Tooling
+* Use functional style.
+* Never use classes.
+* Use closures and factory functions such as `createStore`, `createClient`, or `createService` for encapsulation.
+* Use `pnpm` for dependency and workspace management.
+* Keep public APIs small and explicit.
 
-1. Use **one monorepo per project**; never split one project into multiple repos.
-2. Use **pnpm** for dependencies.
-3. **Pin Node and pnpm versions** and declare them (e.g. `packageManager`, `.node-version` / `.nvmrc`).
-4. Enable and keep **strict TypeScript settings**:
-   - `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
-   - `noImplicitOverride`, `useUnknownInCatchVariables`, etc.
+* Model data so invalid states are unrepresentable.
+* Prefer discriminated unions, branded types, tuples, and literal unions over broad primitive types.
+* Do not use `null` or `undefined` as placeholders unless absence has a clear domain meaning.
+* Represent meaningful absence explicitly, e.g.:
 
----
-
-## Secrets, Environment, and Files
-
-5. **No secrets in code or repo**. Use environment variables only.
-6. Document required env vars in a **typed schema** (e.g. with Zod).
-7. On startup, **fail fast** if env variables or required files are missing.
-8. Type values based on what actually exists at runtime, not what is “supposed” to exist.
-
----
-
-## Types & Data Modeling
-
-9. Prefer **`type` aliases over `interface`**, and **functions over classes**.
-10. Use **arrow functions everywhere**, including global scope.
-11. Prefer **more precise types** that make invalid states unrepresentable:
-
-- Avoid optional fields unless they are truly independent.
-
-- If exactly one of several fields must be defined, use a discriminated union or an `ExactlyOneField` utility, e.g.:
-
-```ts
-export type ExactlyOneField<T extends Record<PropertyKey, unknown>> = {
-  [K in keyof T]: { [P in K]: T[P] } & {
-    [P in Exclude<keyof T, K>]: undefined;
-  };
-}[keyof T];
-
+```ts id="2aguvz"
+type LookupResult<T> =
+  | { readonly kind: "found"; readonly value: T }
+  | { readonly kind: "not-found" };
 ```
 
-12. Prefer **literal types** over broad types when applicable (`"get"` instead of `string`).
-13. Use **branded types** for identifiers and units to avoid mixing incompatible values, e.g.
+* Prefer literal types where the valid values are known
+* Types must be descriptive, not prescriptive. Type values according to what you can potentially prove about them, not what you wish them to be.
+* Do not add defensive checks “just in case.” When a guarantee has already been established, preserve and rely on it rather than validating it again.
+* Parse external data into domain types. Prefer Zod for this, including in simple cases.
 
-```ts
-declare const UserIdSymbol: unique symbol;
-type UserIdSymbol = typeof UserIdSymbol;
-type UserId = Brand<number, UserIdSymbol>;
+* Throw errors only in the truly unexpected situations. If an error is something you might want to process during the normal work, make it a part of the return type
+* Fail immediately and safely when assumptions are violated.
+* Do not silently skip work, invent defaults, infer intent, or continue with partially valid state.
 
-declare const CentsSymbol: unique symbol;
-type CentsSymbol = typeof CentsSymbol;
-type Cents = Brand<number, CentsSymbol>;
+* When several operations must succeed together to preserve consistency, expose one function that owns the complete transition.
+* Do not allow callers to perform coupled state changes independently.
+* Apply this rule to databases, filesystems, global state, caches, queues, and remote APIs.
 
-```
+The transfer abstraction must own withdrawal, deposit, persistence, and rollback or transaction handling. A context-manager-style function may be appropriate when an operation requires a resource lifecycle: it acquires or initializes the resource, passes it to a callback, and reliably commits, closes, releases, or rolls it back after the callback completes.
 
-14. Always **share relevant types between frontend and backend** (even without a special library).
-15. Avoid “double brain”: avoid duplicated schemas/logic; if duplication is unavoidable, prefer **code generation** over manual duplication.
+* Avoid “double brain”: never duplicate schemas, validation rules, mappings, constants, or business logic.
+* Derive types from runtime schemas or runtime schemas from a canonical definition when practical.
+* Centralize shared decisions instead of reproducing them across layers.
+* Rely on strong typing to ensure consistency (e.g. using trpc)
 
----
+* Each logically separated part should have index.ts and only export from it; keep all other files internal.
 
-## Parsing, Validation, and Exhaustiveness
+* Read and validate all environment variables in one dedicated module.
+* Export a validated, immutable configuration object.
+* Fail during startup when a required variable is missing or malformed.
+* Do not read `process.env` elsewhere.
+* Do not apply silent fallback values unless the fallback is an explicit product requirement.
 
-16. **Parse, do not validate**: use Zod to parse input and produce typed output.
-17. Types must be **descriptive, not prescriptive**: type values according to what you can prove about them, not what you wish them to be.
-18. Prefer **exhaustive handling** of discriminated unions; `switch` statements must be exhaustive (use `assertNever` for the default case).
+When uncertain, choose the design that:
 
----
-
-## Functions & API Design
-
-19. If a function receives an object and computes new information:
-
-- Do **not** return the same object with an optional field “filled in”.
-- Make the **output type different from the input type**, reflecting the transformation (morphism).
-
-20. Avoid returning the original argument as part of the result where possible:
-
-- Bad shape:
-
-```ts
-function request(method: "get" | "post"): { response: { method: "get" | "post"; ... } }
-
-```
-
-- Prefer returning **only new information**, and compose it with the input outside the function if necessary.
-
-21. If you must return old information together with new:
-
-- Express the relationship with **type parameters**, so the connection between argument and return is preserved at the type level.
-
----
-
-## Purity, Errors, and IO
-
-22. **Make purity explicit**: separate pure computations from side-effectful IO; keep IO at the edges.
-23. **Never throw errors directly**. Use a `neverThrow`-style abstraction (e.g. result/union-based error handling).
-24. When multiple actions are **coupled** such that doing one without the others can create **inconsistent system state** (DB/global state/filesystem/remote APIs), **abstract them behind one function** that owns that logical state, and **only change the state through that abstraction**.
-
----
-
-## Public API & Package Structure
-
-25. Keep public surfaces **small and explicit**.
-26. Each package should export only from its `index.ts`; keep all other files **internal**.
-
----
-
-## Preferred Technology Stack
-
-27. Prefer the following technologies over their competitors, choosing carefully based on project needs:
-
-- **Framework / UI**: Next.js, React
-- **Backend / Sync**: Convex, tRPC, TanStack Start, SpaceTimeDB
-- **Deployment**: Vercel, Convex, SpaceTimeDB, VPS + nginx if truly required
-- **Validation / Parsing**: Zod
-- **Data / Storage**: Drizzle ORM, Redis
-
----
-
-## React-Specific Practices
-
-28. **Minimize `useEffect`** usage. Most synchronization should be **synchronous**:
-
-- Prefer custom hooks where a single function updates state and performs any related effect immediately.
-- Where applicable rely on **TanStack Query**
-
-29. Use `useEffect` primarily for subscribing to and cleaning up **event listeners** (on mount/unmount).
-30. **Never** call state setters from inside `useEffect`, nor from `setTimeout(0)` called in a `useEffect`.
-31. Always include **all used dependencies** in the `useEffect` dependency array;
-
-- If you feel tempted to omit some dependency, your use of `useEffect` is likely wrong—restructure to a synchronous pattern instead.
-
----
-
-When in doubt, choose the option that:
-
-- encodes more guarantees in the type system,
-- fails earlier rather than later, and
-- avoids duplication of logic or assumptions.
+1. Encodes more guarantees in the type system.
+2. Fails earlier rather than later.
+3. Avoids duplicated logic, schemas, and assumptions.
