@@ -51,6 +51,8 @@ The transfer abstraction must own withdrawal, deposit, persistence, and rollback
 - Do not read `process.env` elsewhere.
 - Do not apply silent fallback values unless the fallback is an explicit product requirement.
 
+- Use camel case for string literals (treat them as identifiers even if strings)
+
 When uncertain, choose the design that:
 
 1. Encodes more guarantees in the type system.
