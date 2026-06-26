@@ -12,7 +12,7 @@
 ```ts id="2aguvz"
 type LookupResult<T> =
   | { readonly kind: "found"; readonly value: T }
-  | { readonly kind: "not-found" };
+  | { readonly kind: "notFound" };
 ```
 
 * Prefer literal types where the valid values are known
