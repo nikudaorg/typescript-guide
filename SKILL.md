@@ -30,7 +30,7 @@ type LookupResult<T> =
 - Throw errors only in the truly unexpected situations. If an error is something you might want to process during the normal work, make it a part of the return type
 - Fail immediately and safely when assumptions are violated.
 - Do not silently skip work, invent defaults, infer intent, or continue with partially valid state.
-- Do not create any errors, or error types in a centralized way. Let the funciton which throws/returns an error, own it, unless polymorphism between different error sources is actually required.
+- Do not create any errors, or error types in a centralized way. Let the funciton which throws/returns an error, own it, unless polymorphism between different error sources is actually required. In most cases don't create the types at all when returning error-objects, return them as const and let TypeScript infer it.
 
 - When several operations must succeed together to preserve consistency, expose one function that owns the complete transition.
 - Do not allow callers to perform coupled state changes independently.
