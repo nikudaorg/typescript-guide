@@ -55,6 +55,15 @@ The transfer abstraction must own withdrawal, deposit, persistence, and rollback
 
 - Use camel case for string literals (treat them as identifiers even if strings)
 
+If a function receives an object and computes new information:
+- Do not return the same object with an optional field “filled in”.
+- Avoid returning the original argument as part of the result where possible. Bad shape:
+```ts
+function request(entityId: string): { response: { entityId: string; ... } }
+```
+- Prefer returning only new information, and compose it with the input outside the function if necessary.
+
+
 When uncertain, choose the design that:
 
 1. Encodes more guarantees in the type system.
