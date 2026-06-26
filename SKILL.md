@@ -37,7 +37,7 @@ type LookupResult<T> =
 - Apply this rule to databases, filesystems, global state, caches, queues, and remote APIs.
 
 The transfer abstraction must own withdrawal, deposit, persistence, and rollback or transaction handling. A context-manager-style function may be appropriate when an operation requires a resource lifecycle: it acquires or initializes the resource, passes it to a callback, and reliably commits, closes, releases, or rolls it back after the callback completes.
-- Never use methods for operations that clearly and fully mutate the behaviour of an object's methods. This may be unavoidable in more obscure cases of domain logic, but should be avoided in clearer situations. Instead, use context managers that expose only the methods available at each necessary step and perform the mutative operations between those steps. For example, don't add a `close()` method, since calling it would make the behavior of the other methods predictably fail afterward. Use a context manager instead.
+- Never use methods for operations that clearly and fully mutate the behaviour of an object's methods. This may be unavoidable in more obscure cases of domain logic, but should be avoided in clearer situations. Instead, use context managers that expose only the methods available at each necessary step and perform the mutative operations between those steps. For example, don't add a `close()` method, since calling it would make the other methods predictably fail afterward. Use a context manager instead.
 
 
 - Avoid “double brain”: never duplicate schemas, validation rules, mappings, constants, or business logic.
