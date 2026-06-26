@@ -7,7 +7,7 @@ This repository is compatible with the Agent Skills format used by Vercel's `npx
 ## Install
 
 ```sh
-npx skills add <owner>/typescript-guide
+npx skills add nikudaorg/typescript-guide
 ```
 
 To install from a local checkout during development:
